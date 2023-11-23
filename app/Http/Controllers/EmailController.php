@@ -2,30 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Utilities\Contracts\ElasticsearchHelperInterface;
-use App\Utilities\Contracts\RedisHelperInterface;
+use App\Http\Requests\SendEmailsRequest;
+use App\Mapping\EmailsMapping;
+use App\Models\EmailRecord;
+use App\Service\EmailService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class EmailController extends Controller
 {
-    // TODO: finish implementing send method
-    public function send()
+    public function send(SendEmailsRequest $request, EmailService $sendEmailService): JsonResponse
     {
+        try {
+            $emailCollectionDto = EmailsMapping::requestToDtoList($request);
 
+            $sendEmailService->dispatchList($emailCollectionDto);
 
-        /** @var ElasticsearchHelperInterface $elasticsearchHelper */
-        $elasticsearchHelper = app()->make(ElasticsearchHelperInterface::class);
-        // TODO: Create implementation for storeEmail and uncomment the following line
-        // $elasticsearchHelper->storeEmail(...);
+            return response()->json(['success' => true]);
+        } catch (Throwable $e) {
+            Log::error('EmailController::send', ['e' => $e->getMessage(), 't' => $e->getTraceAsString()]);
 
-        /** @var RedisHelperInterface $redisHelper */
-        $redisHelper = app()->make(RedisHelperInterface::class);
-        // TODO: Create implementation for storeRecentMessage and uncomment the following line
-        // $redisHelper->storeRecentMessage(...);
+            return response()->json(['error' => 'Something went wrong']);
+        }
+
     }
 
-    //  TODO - BONUS: implement list method
-    public function list()
+    public function list(): JsonResponse
     {
+        $emailRecord = resolve(EmailRecord::class);
+        $emails = $emailRecord->all();
 
+        return response()->json($emails);
     }
 }

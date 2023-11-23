@@ -2,8 +2,6 @@
 
 namespace App\Utilities\Contracts;
 
-use Illuminate\Database\Eloquent\Model;
-
 interface RedisHelperInterface {
     /**
      * Store the id of a message along with a message subject in Redis.
